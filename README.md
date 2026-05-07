@@ -1,7 +1,7 @@
 # Finance Tracker (React + Node/Express + SQLite)
 
 This project replaces the original `localStorage`-only implementation with a full stack:
-- **Client:** React (Vite)
+- **Client:** React
 - **Server:** Node + Express
 - **Auth:** JWT (Bearer token)
 - **Database:** SQLite
