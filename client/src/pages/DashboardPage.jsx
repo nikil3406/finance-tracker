@@ -383,8 +383,8 @@ function DashboardPage({ token, onLogout }) {
                           <AreaChart data={balanceHistory} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                             <defs>
                               <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.3}/>
-                                <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0}/>
+                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.30}/>
+                                <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                               </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -411,11 +411,11 @@ function DashboardPage({ token, onLogout }) {
                             <Area 
                               type="monotone" 
                               dataKey="balance" 
-                              stroke="var(--accent-primary)" 
+                              stroke="#6366f1" 
                               strokeWidth={4} 
                               fillOpacity={1} 
                               fill="url(#colorBalance)"
-                              dot={{ r: 4, fill: 'var(--accent-primary)', strokeWidth: 2, stroke: 'var(--bg-secondary)' }}
+                              dot={{ r: 4, fill: '#6366f1', strokeWidth: 2, stroke: '#0f111a' }}
                               activeDot={{ r: 6, strokeWidth: 0 }}
                             />
                           </AreaChart>
