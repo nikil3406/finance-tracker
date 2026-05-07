@@ -14,16 +14,16 @@ router.get('/data', express.json(), async (req, res) => {
   const userId = req.user.userId;
 
   const incomeRows = await dbAll(
-    'SELECT id, type, name, amount, category FROM items WHERE user_id = ? AND type = ? ORDER BY id',
+    'SELECT id, type, name, amount, category, created_at FROM items WHERE user_id = ? AND type = ? ORDER BY id',
     [userId, 'income']
   );
   const expenseRows = await dbAll(
-    'SELECT id, type, name, amount, category FROM items WHERE user_id = ? AND type = ? ORDER BY id',
+    'SELECT id, type, name, amount, category, created_at FROM items WHERE user_id = ? AND type = ? ORDER BY id',
     [userId, 'expense']
   );
 
-  const income = incomeRows.map((r) => ({ id: r.id, name: r.name, amount: Number(r.amount), category: r.category }));
-  const expense = expenseRows.map((r) => ({ id: r.id, name: r.name, amount: Number(r.amount), category: r.category }));
+  const income = incomeRows.map((r) => ({ id: r.id, name: r.name, amount: Number(r.amount), category: r.category, date: r.created_at }));
+  const expense = expenseRows.map((r) => ({ id: r.id, name: r.name, amount: Number(r.amount), category: r.category, date: r.created_at }));
 
   const categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
 
@@ -51,18 +51,18 @@ router.get('/data', express.json(), async (req, res) => {
     );
 
     const income2 = await dbAll(
-      'SELECT id, type, name, amount, category FROM items WHERE user_id = ? AND type = ? ORDER BY id',
+      'SELECT id, type, name, amount, category, created_at FROM items WHERE user_id = ? AND type = ? ORDER BY id',
       [userId, 'income']
     );
     const expense2 = await dbAll(
-      'SELECT id, type, name, amount, category FROM items WHERE user_id = ? AND type = ? ORDER BY id',
+      'SELECT id, type, name, amount, category, created_at FROM items WHERE user_id = ? AND type = ? ORDER BY id',
       [userId, 'expense']
     );
 
     return res.json({
       data: {
-        income: income2.map((r) => ({ id: r.id, name: r.name, amount: Number(r.amount), category: r.category })),
-        expense: expense2.map((r) => ({ id: r.id, name: r.name, amount: Number(r.amount), category: r.category })),
+        income: income2.map((r) => ({ id: r.id, name: r.name, amount: Number(r.amount), category: r.category, date: r.created_at })),
+        expense: expense2.map((r) => ({ id: r.id, name: r.name, amount: Number(r.amount), category: r.category, date: r.created_at })),
       },
       categories,
     });

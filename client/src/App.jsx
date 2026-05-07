@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import { AnimatePresence, motion } from 'framer-motion';
 
 function App() {
   const [page, setPage] = useState('login');
@@ -27,16 +28,51 @@ function App() {
     setPage('login');
   };
 
+  const pageVariants = {
+    initial: { opacity: 0, x: -20 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: 20 },
+  };
+
   return (
-    <div>
+    <AnimatePresence mode="wait">
       {page === 'login' && (
-        <LoginPage onRegister={() => setPage('register')} onSuccess={handleLogin} />
+        <motion.div
+          key="login"
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={{ duration: 0.3 }}
+        >
+          <LoginPage onRegister={() => setPage('register')} onSuccess={handleLogin} />
+        </motion.div>
       )}
       {page === 'register' && (
-        <RegisterPage onLogin={() => setPage('login')} onSuccess={handleLogin} />
+        <motion.div
+          key="register"
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={{ duration: 0.3 }}
+        >
+          <RegisterPage onLogin={() => setPage('login')} onSuccess={handleLogin} />
+        </motion.div>
       )}
-      {page === 'dashboard' && token && <DashboardPage token={token} onLogout={handleLogout} />}
-    </div>
+      {page === 'dashboard' && token && (
+        <motion.div
+          key="dashboard"
+          variants={pageVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={{ duration: 0.3 }}
+        >
+          <DashboardPage token={token} onLogout={handleLogout} />
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

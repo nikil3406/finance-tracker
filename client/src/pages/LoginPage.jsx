@@ -1,15 +1,7 @@
 import React, { useState } from 'react';
 import { fetchJson } from '../api';
-
-const styles = {
-  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(to bottom right, #1f1c2c, #928dab)' },
-  card: { width: 360, padding: 24, borderRadius: 16, background: '#12131b', color: '#fff', boxShadow: '0 16px 40px rgba(0,0,0,0.2)' },
-  heading: { marginBottom: 20, textAlign: 'center' },
-  input: { width: '100%', margin: '10px 0', padding: '12px 14px', borderRadius: 10, border: '1px solid #444', background: '#1b1d29', color: '#fff', boxSizing: 'border-box' },
-  button: { width: '100%', padding: '12px 16px', borderRadius: 10, border: 'none', background: '#5a67ff', color: '#fff', cursor: 'pointer', fontWeight: 600, boxSizing: 'border-box' },
-  link: { marginTop: 16, textAlign: 'center', color: '#a2b0ff', cursor: 'pointer' },
-  error: { color: '#ff6b6b', marginTop: 10 },
-};
+import { motion } from 'framer-motion';
+import { Mail, Lock, LogIn, ArrowRight } from 'lucide-react';
 
 function LoginPage({ onRegister, onSuccess }) {
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
@@ -42,33 +34,80 @@ function LoginPage({ onRegister, onSuccess }) {
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <h2 style={styles.heading}>Expense Tracker</h2>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at top right, #1e1b4b, #05060b)' }}>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="glass-card"
+        style={{ width: '100%', maxWidth: '400px', padding: '40px' }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.2 }}
+            style={{ width: '64px', height: '64px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}
+          >
+            <LogIn size={32} color="white" />
+          </motion.div>
+          <h2 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '8px', background: 'linear-gradient(to right, #fff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Welcome Back</h2>
+          <p style={{ color: 'var(--text-secondary)' }}>Enter your credentials to access your account</p>
+        </div>
+
         <form onSubmit={handleSubmit}>
-          <input
-            style={styles.input}
-            type="text"
-            value={usernameOrEmail}
-            onChange={(event) => setUsernameOrEmail(event.target.value)}
-            placeholder="Email or Username"
-          />
-          <input
-            style={styles.input}
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Password"
-          />
-          <button style={styles.button} type="submit" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign In'}
+          <div className="input-group">
+            <Mail size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+            <input
+              className="input-field"
+              style={{ paddingLeft: '48px' }}
+              type="text"
+              value={usernameOrEmail}
+              onChange={(event) => setUsernameOrEmail(event.target.value)}
+              placeholder="Email or Username"
+            />
+          </div>
+
+          <div className="input-group">
+            <Lock size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+            <input
+              className="input-field"
+              style={{ paddingLeft: '48px' }}
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Password"
+            />
+          </div>
+
+          <button className="btn-primary" style={{ width: '100%', marginTop: '8px' }} type="submit" disabled={loading}>
+            {loading ? 'Signing in...' : (
+              <>
+                Sign In <ArrowRight size={18} />
+              </>
+            )}
           </button>
         </form>
-        {error && <div style={styles.error}>{error}</div>}
-        <div style={styles.link} onClick={onRegister}>
-          Don’t have an account? Register now.
+
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            style={{ color: 'var(--danger)', marginTop: '16px', fontSize: '0.875rem', textAlign: 'center', padding: '12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+          >
+            {error}
+          </motion.div>
+        )}
+
+        <div 
+          onClick={onRegister}
+          style={{ marginTop: '24px', textAlign: 'center', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.875rem', transition: 'color 0.3s' }}
+          onMouseOver={(e) => e.target.style.color = 'white'}
+          onMouseOut={(e) => e.target.style.color = 'var(--text-secondary)'}
+        >
+          Don’t have an account? <span style={{ color: 'var(--accent-primary)', fontWeight: '600' }}>Register now</span>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
