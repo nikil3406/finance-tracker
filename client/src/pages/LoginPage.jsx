@@ -34,13 +34,13 @@ function LoginPage({ onRegister, onSuccess }) {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at top right, #1e1b4b, #05060b)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at top right, #1e1b4b, #05060b)', padding: '1rem' }}>
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="glass-card"
-        style={{ width: '100%', maxWidth: '400px', padding: '40px' }}
+        style={{ width: '100%', maxWidth: '400px', padding: 'clamp(20px, 8vw, 40px)' }}
       >
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <motion.div
@@ -51,8 +51,8 @@ function LoginPage({ onRegister, onSuccess }) {
           >
             <LogIn size={32} color="white" />
           </motion.div>
-          <h2 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '8px', background: 'linear-gradient(to right, #fff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Welcome Back</h2>
-          <p style={{ color: 'var(--text-secondary)' }}>Enter your credentials to access your account</p>
+          <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: '800', marginBottom: '8px', background: 'linear-gradient(to right, #fff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Welcome Back</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 'clamp(0.875rem, 3vw, 1rem)' }}>Enter your credentials to access your account</p>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -101,7 +101,7 @@ function LoginPage({ onRegister, onSuccess }) {
 
         <div 
           onClick={onRegister}
-          style={{ marginTop: '24px', textAlign: 'center', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.875rem', transition: 'color 0.3s' }}
+          style={{ marginTop: '24px', textAlign: 'center', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 'clamp(0.8rem, 3vw, 0.875rem)', transition: 'color 0.3s' }}
           onMouseOver={(e) => e.target.style.color = 'white'}
           onMouseOut={(e) => e.target.style.color = 'var(--text-secondary)'}
         >

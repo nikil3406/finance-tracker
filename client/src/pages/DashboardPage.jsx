@@ -272,10 +272,20 @@ function DashboardPage({ token, onLogout }) {
 
   const currentCategories = categories?.[form.type] || {};
 
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+    <div className="dashboard-container">
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 50 }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div style={{ width: '280px', background: 'var(--bg-secondary)', borderRight: '1px solid var(--glass-border)', padding: '32px', display: 'flex', flexDirection: 'column', position: 'fixed', height: '100vh' }}>
+      <div className={`dashboard-sidebar ${sidebarOpen ? 'active' : ''}`} style={{ background: 'var(--bg-secondary)', borderRight: '1px solid var(--glass-border)', padding: '32px', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '48px' }}>
           <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Wallet color="white" size={24} />
@@ -322,7 +332,18 @@ function DashboardPage({ token, onLogout }) {
       </div>
 
       {/* Main Content */}
-      <main style={{ flex: 1, marginLeft: '280px', padding: '48px' }}>
+      <main className="dashboard-main" style={{ flex: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+          <button 
+            className="sidebar-toggle"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            style={{ width: 'auto' }}
+          >
+            <span>☰</span>
+          </button>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: '800' }}>Finance.io</h1>
+          <div style={{ width: '40px' }}></div>
+        </div>
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
             <motion.div
@@ -332,10 +353,10 @@ function DashboardPage({ token, onLogout }) {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '4px' }}>Overview</h1>
-                  <p style={{ color: 'var(--text-secondary)' }}>Track your financial health and expenses</p>
+                  <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: '800', marginBottom: '4px' }}>Overview</h1>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: 'clamp(0.875rem, 2vw, 1rem)' }}>Track your financial health and expenses</p>
                 </div>
                 <button className="btn-primary" onClick={() => { setForm({ type: 'income', name: '', amount: '', category: '', newCategory: '', editingId: null }); setShowAddModal(true); }}>
                   <Plus size={20} />
@@ -344,7 +365,7 @@ function DashboardPage({ token, onLogout }) {
               </div>
 
               {/* Stats Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '40px' }}>
+              <div className="dashboard-stats-grid">
                 {[
                   { label: 'Total Balance', value: `${currency}${formatValue(netFlow)}`, icon: Wallet, color: '#6366f1' },
                   { label: 'Total Income', value: `${currency}${formatValue(totalIncome)}`, icon: TrendingUp, color: 'var(--success)' },
@@ -438,7 +459,7 @@ function DashboardPage({ token, onLogout }) {
               </div>
 
               {/* Transactions Table/List */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.2fr', gap: '24px', alignItems: 'start' }}>
+              <div className="dashboard-content-grid">
                 <div className="glass-card" style={{ padding: '32px', minWidth: '0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Recent Transactions</h3>
