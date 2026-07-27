@@ -1,14 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus } from 'lucide-react';
 import { authHeaders, fetchJson } from '../api';
-import DashboardHeader from '../features/dashboard/components/DashboardHeader';
-import OverviewTab from '../features/dashboard/components/OverviewTab';
-import TransactionsTab from '../features/dashboard/components/TransactionsTab';
-import AnalyticsTab from '../features/dashboard/components/AnalyticsTab';
-import SettingsTab from '../features/dashboard/components/SettingsTab';
-import TransactionModal from '../features/dashboard/components/TransactionModal';
-import { RATES, formatValue } from '../utils/currency';
+import { RATES } from '../constants/currency';
+import { formatValue } from '../utils/formatters';
 
-export default function DashboardPage({ token, onLogout }) {
+import Sidebar from '../components/dashboard/Sidebar';
+import StatsGrid from '../components/dashboard/StatsGrid';
+import WealthChart from '../components/dashboard/WealthChart';
+import RecentTransactions from '../components/dashboard/RecentTransactions';
+import SavingsGoalCard from '../components/dashboard/SavingsGoalCard';
+import ExpensePieChart from '../components/dashboard/ExpensePieChart';
+import SmartInsights from '../components/dashboard/SmartInsights';
+import CategoriesView from '../components/dashboard/CategoriesView';
+import SettingsView from '../components/dashboard/SettingsView';
+import TransactionModal from '../components/dashboard/TransactionModal';
+
+function DashboardPage({ token, onLogout }) {
   const [data, setData] = useState({ income: [], expense: [] });
   const [categories, setCategories] = useState({ income: {}, expense: {} });
   const [loading, setLoading] = useState(true);
@@ -21,14 +29,9 @@ export default function DashboardPage({ token, onLogout }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [savingsGoal, setSavingsGoal] = useState({ name: 'Emergency Fund', target: 50000, editing: false });
   const [budgets, setBudgets] = useState({});
-  const [form, setForm] = useState({
-    type: 'income',
-    name: '',
-    amount: '',
-    category: '',
-    newCategory: '',
-    editingId: null,
-  });
+  const [form, setForm] = useState({ type: 'income', name: '', amount: '', category: '', newCategory: '', editingId: null });
+  const [userProfile, setUserProfile] = useState({ name: 'User', email: 'user@example.com' });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const totalIncome = useMemo(
     () => (Array.isArray(data?.income) ? data.income.reduce((sum, item) => sum + (Number(item?.amount) || 0), 0) : 0),
@@ -41,21 +44,6 @@ export default function DashboardPage({ token, onLogout }) {
   );
 
   const netFlow = totalIncome - totalExpense;
-
-  const combinedItems = useMemo(() => {
-    const incomeArr = Array.isArray(data?.income) ? data.income : [];
-    const expenseArr = Array.isArray(data?.expense) ? data.expense : [];
-    const combined = [
-      ...incomeArr.map((i) => ({ ...i, type: 'income' })),
-      ...expenseArr.map((e) => ({ ...e, type: 'expense' })),
-    ];
-    combined.sort((a, b) => {
-      const dateA = new Date(String(a.date).replace(' ', 'T'));
-      const dateB = new Date(String(b.date).replace(' ', 'T'));
-      return (isNaN(dateB.getTime()) ? 0 : dateB.getTime()) - (isNaN(dateA.getTime()) ? 0 : dateA.getTime());
-    });
-    return combined;
-  }, [data]);
 
   const balanceHistory = useMemo(() => {
     const incomeArr = Array.isArray(data?.income) ? data.income : [];
@@ -114,6 +102,20 @@ export default function DashboardPage({ token, onLogout }) {
       .slice(0, 8);
   }, [data?.expense, currency]);
 
+  const groupedData = useMemo(() => {
+    const res = { income: {}, expense: {} };
+    ['income', 'expense'].forEach((type) => {
+      if (Array.isArray(data?.[type])) {
+        data[type].forEach((item) => {
+          const cat = item.category || 'Uncategorized';
+          if (!res[type][cat]) res[type][cat] = [];
+          res[type][cat].push(item);
+        });
+      }
+    });
+    return res;
+  }, [data]);
+
   useEffect(() => {
     if (token) loadData();
   }, [token]);
@@ -141,23 +143,6 @@ export default function DashboardPage({ token, onLogout }) {
 
   const handleFieldChange = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
-  };
-
-  const handleOpenAddModal = () => {
-    setForm({ type: 'income', name: '', amount: '', category: '', newCategory: '', editingId: null });
-    setShowAddModal(true);
-  };
-
-  const handleEditItem = (item) => {
-    setForm({
-      type: item.type,
-      name: item.name,
-      amount: item.amount,
-      category: item.category || '',
-      newCategory: '',
-      editingId: item.id,
-    });
-    setShowAddModal(true);
   };
 
   const handleSubmit = async (event) => {
@@ -197,27 +182,39 @@ export default function DashboardPage({ token, onLogout }) {
       setShowAddModal(false);
       await loadData();
     } catch (err) {
-      setError(err.message || 'Failed to save item');
+      setError(err.message || 'Could not save item');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDeleteItem = async (item) => {
-    if (!window.confirm(`Are you sure you want to delete "${item.name}"?`)) return;
+  const handleEdit = (type, item) => {
+    setForm({
+      type,
+      name: item.name,
+      amount: item.amount,
+      category: item.category || '',
+      newCategory: '',
+      editingId: item.id,
+    });
+    setShowAddModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this item?')) return;
     try {
-      await fetchJson(`/me/data/items/${item.id}`, {
+      await fetchJson(`/me/data/items/${id}`, {
         method: 'DELETE',
         headers: authHeaders(token),
       });
       await loadData();
     } catch (err) {
-      setError(err.message || 'Failed to delete item');
+      setError(err.message || 'Could not delete item');
     }
   };
 
   const handleDeleteCategory = async (type, categoryName) => {
-    if (!window.confirm(`Are you sure you want to delete category "${categoryName}" and all associated items?`)) return;
+    if (!window.confirm(`Delete category "${categoryName}" and all items in it?`)) return;
     try {
       await fetchJson(`/me/data/categories/${type}/${encodeURIComponent(categoryName)}`, {
         method: 'DELETE',
@@ -225,85 +222,151 @@ export default function DashboardPage({ token, onLogout }) {
       });
       await loadData();
     } catch (err) {
-      setError(err.message || 'Failed to delete category');
+      setError(err.message || 'Could not delete category');
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-950 text-white">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
-          <p className="text-sm font-medium text-slate-400">Loading your finances...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleExport = () => {
+    const allData = {
+      transactions: [...data.income, ...data.expense],
+      categories,
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `finance_data_${new Date().toLocaleDateString()}.json`;
+    a.click();
+  };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <DashboardHeader
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          currency={currency}
-          setCurrency={setCurrency}
-          onOpenAddModal={handleOpenAddModal}
-          onLogout={onLogout}
-        />
+    <div className="dashboard-container">
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        onLogout={onLogout}
+      />
 
-        {error && (
-          <div className="rounded-xl bg-rose-500/10 border border-rose-500/20 p-4 text-sm text-rose-400 font-medium flex justify-between items-center">
-            <span>{error}</span>
-            <button onClick={() => setError('')} className="text-xs underline">Dismiss</button>
-          </div>
-        )}
+      {/* Main Content */}
+      <main className="dashboard-main" style={{ flex: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+          <button
+            className="sidebar-toggle"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            style={{ width: 'auto' }}
+          >
+            <span>☰</span>
+          </button>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: '800' }}>Finance.io</h1>
+          <div style={{ width: '40px' }}></div>
+        </div>
 
-        <main>
+        <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
-            <OverviewTab
-              totalIncome={totalIncome}
-              totalExpense={totalExpense}
-              netFlow={netFlow}
-              currency={currency}
-              balanceHistory={balanceHistory}
-              chartData={chartData}
-              savingsGoal={savingsGoal}
-              setSavingsGoal={setSavingsGoal}
-            />
+            <motion.div
+              key="overview"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                  <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: '800', marginBottom: '4px' }}>Overview</h1>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: 'clamp(0.875rem, 2vw, 1rem)' }}>Track your financial health and expenses</p>
+                </div>
+                <button
+                  className="btn-primary"
+                  onClick={() => {
+                    setForm({ type: 'income', name: '', amount: '', category: '', newCategory: '', editingId: null });
+                    setShowAddModal(true);
+                  }}
+                >
+                  <Plus size={20} />
+                  Add Transaction
+                </button>
+              </div>
+
+              {/* Stats Grid */}
+              <StatsGrid
+                netFlow={netFlow}
+                totalIncome={totalIncome}
+                totalExpense={totalExpense}
+                currency={currency}
+              />
+
+              {/* Wealth Chart */}
+              <WealthChart
+                balanceHistory={balanceHistory}
+                currency={currency}
+              />
+
+              {/* Content Grid */}
+              <div className="dashboard-content-grid">
+                <RecentTransactions
+                  data={data}
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  currency={currency}
+                  loading={loading}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <SavingsGoalCard
+                    netFlow={netFlow}
+                    savingsGoal={savingsGoal}
+                    setSavingsGoal={setSavingsGoal}
+                    currency={currency}
+                  />
+
+                  <ExpensePieChart
+                    chartData={chartData}
+                    currency={currency}
+                  />
+
+                  <SmartInsights
+                    netFlow={netFlow}
+                    currency={currency}
+                  />
+                </div>
+              </div>
+            </motion.div>
           )}
 
-          {activeTab === 'transactions' && (
-            <TransactionsTab
-              combinedItems={combinedItems}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              currentPage={currentPage}
-              setCurrentPage={setCurrentPage}
-              currency={currency}
-              onEditItem={handleEditItem}
-              onDeleteItem={handleDeleteItem}
-            />
-          )}
-
-          {activeTab === 'analytics' && (
-            <AnalyticsTab
-              data={data}
-              currency={currency}
+          {activeTab === 'categories' && (
+            <CategoriesView
+              groupedData={groupedData}
               budgets={budgets}
               setBudgets={setBudgets}
+              currency={currency}
+              onDeleteCategory={handleDeleteCategory}
+              onOpenNewCategoryModal={() => {
+                setForm({ type: 'income', name: 'Category Marker', amount: 0, category: '__new__', newCategory: '', editingId: null });
+                setShowAddModal(true);
+              }}
             />
           )}
 
           {activeTab === 'settings' && (
-            <SettingsTab
-              categories={categories}
-              onDeleteCategory={handleDeleteCategory}
+            <SettingsView
+              userProfile={userProfile}
+              setUserProfile={setUserProfile}
+              currency={currency}
+              setCurrency={setCurrency}
+              onExportData={handleExport}
             />
           )}
-        </main>
-      </div>
+        </AnimatePresence>
+      </main>
 
+      {/* Transaction Modal */}
       <TransactionModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
@@ -311,9 +374,11 @@ export default function DashboardPage({ token, onLogout }) {
         onFieldChange={handleFieldChange}
         categories={categories}
         saving={saving}
-        error={error}
+        currency={currency}
         onSubmit={handleSubmit}
       />
     </div>
   );
 }
+
+export default DashboardPage;
