@@ -1,5 +1,4 @@
-const API_BASE =
-  import.meta.env.VITE_API_BASE ;
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://10.155.200.193:4000/api';
 function parseTextResponse(res, text) {
   if (!text) return null;
   try {
